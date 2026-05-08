@@ -1,4 +1,5 @@
 import discord
+import os
 from discord.ext import commands
 
 class JJSDropdown(discord.ui.Select):
@@ -67,4 +68,4 @@ async def menu(ctx):
 # --- RUN THE BOT ---
 # REPLACE 'YOUR_NEW_TOKEN_HERE' with your actual bot token
 
-bot.run("MTUwMDQzMDY4Nzg5ODA0NjUwNA.GYdnOU.72JSRRW2t7rCfTPnA3HpV4BJX_64FJuIJXuaTA")
+bot.run(os.getenv("DISCORD_TOKEN"))
