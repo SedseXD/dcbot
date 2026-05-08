@@ -66,5 +66,5 @@ async def menu(ctx):
 
 # --- RUN THE BOT ---
 # REPLACE 'YOUR_NEW_TOKEN_HERE' with your actual bot token
-import os
-bot.run(os.getenv("DISCORD_TOKEN"))
+
+bot.run("MTUwMDQzMDY4Nzg5ODA0NjUwNA.GYdnOU.72JSRRW2t7rCfTPnA3HpV4BJX_64FJuIJXuaTA")
