@@ -103,13 +103,7 @@ async def menu(ctx):
 
 @bot.event
 async def on_ready():
-    print(f'Logged in as {bot.user}')
-    print("--------------------------------------------------")
-    print("1. Check Railway logs for 'Auto-sync successful'")
-    print("2. Try typing /script in Discord")
-    print("3. If /script fails, type !sync")
-    print("4. If !sync fails, type !menu")
-    print("--------------------------------------------------")
+    print("!!! UPDATE TEST: THE NEW CODE IS FINALLY WORKING !!!")
 
 # ==========================================
 # 4. RUN
