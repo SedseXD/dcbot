@@ -9,7 +9,6 @@ from discord import app_commands
 
 class JJSDropdown(discord.ui.Select):
     def __init__(self):
-        # Define the options the user will see in the menu
         options = [
             discord.SelectOption(
                 label="Sedse JJS Script", 
@@ -39,74 +38,64 @@ class JJSDropdown(discord.ui.Select):
         )
 
     async def callback(self, interaction: discord.Interaction):
-        # Logic to determine which message to send based on the choice
         if self.values[0] == "sedse_jjs":
             response_text = "Here is the **Sedse JJS Script**!:\n`loadstring(game:HttpGet(\"https://raw.githubusercontent.com/SedseXD/sedsejjs/refs/heads/main/sedse's%20scripts\"))()`"
-        
         elif self.values[0] == "jjs_piano":
             response_text = "Here is the information and link for **JJS Piano**!:\n `loadstring(game:HttpGet('https://raw.githubusercontent.com/SedseXD/piano/refs/heads/main/pianoscript.lua'))()`"
-        
         elif self.values[0] == "jjs_piano_os":
             response_text = "Here is the GitHub link and info for **JJS Piano Open Source**!: https://raw.githubusercontent.com/SedseXD/piano/refs/heads/main/pianoscript.lua"
 
-        # ephemeral=True means only the person who clicked it sees the response
         await interaction.response.send_message(response_text, ephemeral=True)
 
 class JJSView(discord.ui.View):
     def __init__(self):
-        super().__init__(timeout=None) # timeout=None makes the menu work even after bot restarts
+        super().__init__(timeout=None)
         self.add_item(JJSDropdown())
 
 # ==========================================
-# 2. BOT CONFIGURATION
+# 2. BOT CLASS (For Auto-Sync)
 # ==========================================
 
-intents = discord.Intents.default()
-intents.message_content = True # Required for the !sync command to work
+class MyBot(commands.Bot):
+    def __init__(self):
+        # We keep the prefix just in case, but the focus is on slash commands
+        intents = discord.Intents.default()
+        intents.message_content = True 
+        super().__init__(command_prefix="!", intents=intents)
 
-bot = commands.Bot(command_prefix="!", intents=intents)
+    async def setup_hook(self):
+        # 1. Make the dropdown menu persistent
+        self.add_view(JJSView())
+        
+        # 2. Automatically sync slash commands to Discord
+        print("Syncing slash commands... please wait.")
+        try:
+            synced = await self.tree.sync()
+            print(f"✅ Successfully synced {len(synced)} slash command(s)!")
+        except Exception as e:
+            print(f"❌ Sync failed: {e}")
 
-@bot.event
-async def on_ready():
-    # This ensures the dropdown menu continues to work after the bot restarts
-    bot.add_view(JJSView())
-    print(f'Logged in successfully as {bot.user}')
-    print("-" * 30)
-    print("BOT STATUS: Online")
-    print("ACTION REQUIRED: Type !sync in your Discord server to activate /script")
-    print("-" * 30)
+bot = MyBot()
 
 # ==========================================
 # 3. COMMANDS
 # ==========================================
 
-# --- SLASH COMMAND ---
-# This is the /script command
 @bot.tree.command(name="script", description="Open the script selection menu")
 async def script(interaction: discord.Interaction):
     await interaction.response.send_message("Please select a script from below:", view=JJSView(), ephemeral=True)
 
-# --- SYNC COMMAND ---
-# This is a hidden prefix command. 
-# Type !sync in your server to force Discord to load the /script command.
-@bot.command()
-async def sync(ctx):
-    try:
-        synced = await bot.tree.sync()
-        await ctx.send(f"✅ Successfully synced {len(synced)} slash command(s)! You can now use `/script`.")
-        print(f"Synced {len(synced)} commands.")
-    except Exception as e:
-        await ctx.send(f"❌ Sync failed: {e}")
-        print(f"Error syncing: {e}")
+@bot.event
+async def on_ready():
+    print(f'Logged in as {bot.user}')
+    print("The bot is now online. If you have the 'applications.commands' scope, /script will appear shortly.")
 
 # ==========================================
-# 4. RUN BOT
+# 4. RUN
 # ==========================================
 
-# This gets the token from your Railway environment variables
 TOKEN = os.getenv("DISCORD_TOKEN")
-
 if TOKEN:
     bot.run(TOKEN)
 else:
-    print("ERROR: No DISCORD_TOKEN found in environment variables!")
+    print("ERROR: No DISCORD_TOKEN found!")
