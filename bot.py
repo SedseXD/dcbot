@@ -1,11 +1,11 @@
 import discord
 import os
 from discord.ext import commands
+from discord import app_commands # Necessary for slash commands
 
 class JJSDropdown(discord.ui.Select):
     def __init__(self):
         options =[
-            # New option added at the top
             discord.SelectOption(
                 label="Sedse JJS Script", 
                 description="Click here for the Sedse JJS Script", 
@@ -34,7 +34,6 @@ class JJSDropdown(discord.ui.Select):
         )
 
     async def callback(self, interaction: discord.Interaction):
-        # Logic for the new script
         if self.values[0] == "sedse_jjs":
             response_text = "Here is the **Sedse JJS Script**!:\n`loadstring(game:HttpGet(\"https://raw.githubusercontent.com/SedseXD/sedsejjs/refs/heads/main/sedse's%20scripts\"))()`"
         
@@ -48,24 +47,36 @@ class JJSDropdown(discord.ui.Select):
 
 class JJSView(discord.ui.View):
     def __init__(self):
-        super().__init__(timeout=None)
+        super().__init__(timeout=None) # timeout=None makes the dropdown work even after bot restarts
         self.add_item(JJSDropdown())
 
+# Setup Intents
 intents = discord.Intents.default()
 intents.message_content = True
-bot = commands.Bot(command_prefix="!", intents=intents)
+
+# We define the bot class to handle the syncing of slash commands easily
+class MyBot(commands.Bot):
+    def __init__(self):
+        super().__init__(command_prefix="!", intents=intents)
+
+    async def setup_hook(self):
+        # This registers the View so the dropdown keeps working after a bot restart
+        self.add_view(JJSView())
+        # This syncs the slash commands to Discord
+        await self.tree.sync() 
+        print("Slash commands synced!")
+
+bot = MyBot()
+
+# --- SLASH COMMAND ---
+@bot.tree.command(name="script", description="Show the script selection menu")
+async def script(interaction: discord.Interaction):
+    """This replaces the !menu command with /script"""
+    await interaction.response.send_message("Please select a script from below:", view=JJSView(), ephemeral=True)
 
 @bot.event
 async def on_ready():
     print(f'Logged in successfully as {bot.user}')
-    bot.add_view(JJSView())
-
-@bot.command()
-async def menu(ctx):
-    """Type !menu in Discord to spawn the dropdown message."""
-    await ctx.send("Please select a script from below:", view=JJSView())
 
 # --- RUN THE BOT ---
-# REPLACE 'YOUR_NEW_TOKEN_HERE' with your actual bot token
-
 bot.run(os.getenv("DISCORD_TOKEN"))
