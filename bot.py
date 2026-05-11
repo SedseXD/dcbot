@@ -53,27 +53,26 @@ class JJSView(discord.ui.View):
         self.add_item(JJSDropdown())
 
 # ==========================================
-# 2. BOT CLASS (For Auto-Sync)
+# 2. BOT CLASS
 # ==========================================
 
 class MyBot(commands.Bot):
     def __init__(self):
-        # We keep the prefix just in case, but the focus is on slash commands
         intents = discord.Intents.default()
         intents.message_content = True 
         super().__init__(command_prefix="!", intents=intents)
 
     async def setup_hook(self):
-        # 1. Make the dropdown menu persistent
+        # This makes the dropdown work after bot restarts
         self.add_view(JJSView())
         
-        # 2. Automatically sync slash commands to Discord
-        print("Syncing slash commands... please wait.")
+        # AUTO-SYNC: This attempts to register /script automatically on startup
+        print("Attempting to auto-sync slash commands...")
         try:
             synced = await self.tree.sync()
-            print(f"✅ Successfully synced {len(synced)} slash command(s)!")
+            print(f"✅ Auto-sync successful! Registered {len(synced)} command(s).")
         except Exception as e:
-            print(f"❌ Sync failed: {e}")
+            print(f"❌ Auto-sync failed: {e}")
 
 bot = MyBot()
 
@@ -81,14 +80,36 @@ bot = MyBot()
 # 3. COMMANDS
 # ==========================================
 
+# --- SLASH COMMAND (/script) ---
 @bot.tree.command(name="script", description="Open the script selection menu")
 async def script(interaction: discord.Interaction):
     await interaction.response.send_message("Please select a script from below:", view=JJSView(), ephemeral=True)
 
+# --- BACKUP PREFIX COMMAND (!sync) ---
+@bot.command()
+async def sync(ctx):
+    """Manual sync in case auto-sync fails"""
+    try:
+        synced = await bot.tree.sync()
+        await ctx.send(f"✅ Manually synced {len(synced)} command(s)!")
+    except Exception as e:
+        await ctx.send(f"❌ Sync failed: {e}")
+
+# --- LAST RESORT COMMAND (!menu) ---
+@bot.command()
+async def menu(ctx):
+    """Works even if slash commands aren't showing up yet"""
+    await ctx.send("Please select a script from below:", view=JJSView())
+
 @bot.event
 async def on_ready():
     print(f'Logged in as {bot.user}')
-    print("The bot is now online. If you have the 'applications.commands' scope, /script will appear shortly.")
+    print("--------------------------------------------------")
+    print("1. Check Railway logs for 'Auto-sync successful'")
+    print("2. Try typing /script in Discord")
+    print("3. If /script fails, type !sync")
+    print("4. If !sync fails, type !menu")
+    print("--------------------------------------------------")
 
 # ==========================================
 # 4. RUN
