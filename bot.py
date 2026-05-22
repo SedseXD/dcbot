@@ -4,8 +4,26 @@ from discord.ext import commands
 from discord import app_commands
 
 # ==========================================
-# 1. DROPDOWN MENU SETUP
+# 1. DROPDOWN & BUTTON SETUP
 # ==========================================
+
+# ⚠️ REPLACE THIS LINK WITH YOUR ACTUAL CLOUDFLARE PAGES URL
+VERIFICATION_URL = "https://your-project-name.pages.dev"
+
+class VerifyView(discord.ui.View):
+    """
+    A view containing the link button pointing to your website.
+    Note: Link buttons are automatically persistent and do not expire.
+    """
+    def __init__(self):
+        super().__init__(timeout=None)
+        self.add_item(discord.ui.Button(
+            label="Verify with Discord",
+            url=VERIFICATION_URL,
+            style=discord.ButtonStyle.link,
+            emoji="🛡️"
+        ))
+
 
 class JJSDropdown(discord.ui.Select):
     def __init__(self):
@@ -63,10 +81,11 @@ class MyBot(commands.Bot):
         super().__init__(command_prefix="!", intents=intents)
 
     async def setup_hook(self):
-        # This makes the dropdown work after bot restarts
+        # Keeps both the dropdown and verify buttons active after bot restarts
         self.add_view(JJSView())
+        self.add_view(VerifyView())
         
-        # AUTO-SYNC: This attempts to register /script automatically on startup
+        # AUTO-SYNC: Attempts to register commands automatically on startup
         print("Attempting to auto-sync slash commands...")
         try:
             synced = await self.tree.sync()
@@ -79,6 +98,34 @@ bot = MyBot()
 # ==========================================
 # 3. COMMANDS
 # ==========================================
+
+# --- NEW: VERIFICATION SETUP COMMANDS ---
+
+# Slash Command (/verify-setup)
+@bot.tree.command(name="verify-setup", description="Send the verification button to this channel")
+@app_commands.checks.has_permissions(administrator=True) # Only administrators can use this
+async def verify_setup(interaction: discord.Interaction):
+    embed = discord.Embed(
+        title="Server Verification",
+        description="To access the rest of the server channels, please click the button below to verify your account and complete the security check.",
+        color=0x5865F2
+    )
+    await interaction.response.send_message(embed=embed, view=VerifyView())
+
+# Prefix Command (!verify-setup) as a backup
+@bot.command()
+@commands.has_permissions(administrator=True)
+async def verify_setup(ctx):
+    """Send the verification button to this channel"""
+    embed = discord.Embed(
+        title="Server Verification",
+        description="To access the rest of the server channels, please click the button below to verify your account and complete the security check.",
+        color=0x5865F2
+    )
+    await ctx.send(embed=embed, view=VerifyView())
+
+
+# --- EXISTING SCRIPT SELECTION COMMANDS ---
 
 # --- SLASH COMMAND (/script) ---
 @bot.tree.command(name="script", description="Open the script selection menu")
