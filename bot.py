@@ -8,7 +8,7 @@ from discord import app_commands
 # ==========================================
 
 # ⚠️ REPLACE THIS LINK WITH YOUR ACTUAL CLOUDFLARE PAGES URL
-VERIFICATION_URL = "https://your-project-name.pages.dev"
+VERIFICATION_URL = "https://sedse.pages.dev"
 
 class VerifyView(discord.ui.View):
     """
