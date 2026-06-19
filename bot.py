@@ -3,11 +3,6 @@ import os
 from discord.ext import commands
 from discord import app_commands
 
-# ==========================================
-# 1. DROPDOWN & BUTTON SETUP
-# ==========================================
-
-# ⚠️ REPLACE THIS LINK WITH YOUR ACTUAL CLOUDFLARE PAGES URL
 VERIFICATION_URL = "https://sedse.pages.dev"
 
 class VerifyView(discord.ui.View):
@@ -70,9 +65,7 @@ class JJSView(discord.ui.View):
         super().__init__(timeout=None)
         self.add_item(JJSDropdown())
 
-# ==========================================
-# 2. BOT CLASS
-# ==========================================
+
 
 class MyBot(commands.Bot):
     def __init__(self):
@@ -81,11 +74,10 @@ class MyBot(commands.Bot):
         super().__init__(command_prefix="!", intents=intents)
 
     async def setup_hook(self):
-        # Keeps both the dropdown and verify buttons active after bot restarts
+
         self.add_view(JJSView())
         self.add_view(VerifyView())
-        
-        # AUTO-SYNC: Attempts to register commands automatically on startup
+
         print("Attempting to auto-sync slash commands...")
         try:
             synced = await self.tree.sync()
@@ -95,13 +87,8 @@ class MyBot(commands.Bot):
 
 bot = MyBot()
 
-# ==========================================
-# 3. COMMANDS
-# ==========================================
 
-# --- NEW: VERIFICATION SETUP COMMANDS ---
 
-# Slash Command (/verify-setup)
 @bot.tree.command(name="verify-setup", description="Send the verification button to this channel")
 @app_commands.checks.has_permissions(administrator=True) # Only administrators can use this
 async def verify_setup(interaction: discord.Interaction):
@@ -112,7 +99,7 @@ async def verify_setup(interaction: discord.Interaction):
     )
     await interaction.response.send_message(embed=embed, view=VerifyView())
 
-# Prefix Command (!verify-setup) as a backup
+
 @bot.command()
 @commands.has_permissions(administrator=True)
 async def verify_setup(ctx):
@@ -125,14 +112,13 @@ async def verify_setup(ctx):
     await ctx.send(embed=embed, view=VerifyView())
 
 
-# --- EXISTING SCRIPT SELECTION COMMANDS ---
 
-# --- SLASH COMMAND (/script) ---
+
 @bot.tree.command(name="script", description="Open the script selection menu")
 async def script(interaction: discord.Interaction):
     await interaction.response.send_message("Please select a script from below:", view=JJSView(), ephemeral=True)
 
-# --- BACKUP PREFIX COMMAND (!sync) ---
+
 @bot.command()
 async def sync(ctx):
     """Manual sync in case auto-sync fails"""
@@ -142,7 +128,7 @@ async def sync(ctx):
     except Exception as e:
         await ctx.send(f"❌ Sync failed: {e}")
 
-# --- LAST RESORT COMMAND (!menu) ---
+
 @bot.command()
 async def menu(ctx):
     """Works even if slash commands aren't showing up yet"""
@@ -152,9 +138,6 @@ async def menu(ctx):
 async def on_ready():
     print("!!! UPDATE TEST: THE NEW CODE IS FINALLY WORKING !!!")
 
-# ==========================================
-# 4. RUN
-# ==========================================
 
 TOKEN = os.getenv("DISCORD_TOKEN")
 if TOKEN:
